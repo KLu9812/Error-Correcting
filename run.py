@@ -10,9 +10,9 @@ if __name__ == "__main__":
     #Cladder run--------------------------------------------------------------
     # save_cladder(100)
     
-    # cladder_info = load_cladder_info()
-    # ec = ErrorCorrect(models = models, schema = yes_no_response_schema,
-    #                   questions = cladder_info['questions'], correct_answers = cladder_info["correct answers"])
+    cladder_info = load_cladder_info()
+    ec = ErrorCorrect(models = models, schema = yes_no_response_schema,
+                      questions = cladder_info['questions'], correct_answers = cladder_info["correct answers"])
     
     # ec.set_initial_response_prompt(yes_no_role_message)
     # ec.save_responses()
@@ -21,20 +21,21 @@ if __name__ == "__main__":
     # ec.set_multi_input_prompt(yes_no_multi_input_prompt)
     # ec.get_multi_input()
     
-    # ec.analyze()
+    # ec.clean_yes_no()
+    ec.analyze()
     
     #AIME run-----------------------------------------------------------------
-    save_aime(100)
+    # save_aime(100)
     
-    aime_info = load_aime_info()
-    ec = ErrorCorrect(models = models, schema = yes_no_response_schema,
-                      questions = aime_info['questions'], correct_answers = aime_info["correct answers"])
+    # aime_info = load_aime_info()
+    # ec = ErrorCorrect(models = models, schema = yes_no_response_schema,
+    #                   questions = aime_info['questions'], correct_answers = aime_info["correct answers"])
     
-    ec.set_initial_response_prompt(digit_role_message)
-    ec.save_responses()
+    # ec.set_initial_response_prompt(digit_role_message)
+    # ec.save_responses()
     
-    ec.set_multi_input_role(digit_multi_input_role_message)
-    ec.set_multi_input_prompt(digit_multi_input_prompt)
-    ec.get_multi_input()
+    # ec.set_multi_input_role(digit_multi_input_role_message)
+    # ec.set_multi_input_prompt(digit_multi_input_prompt)
+    # ec.get_multi_input()
     
-    ec.analyze()
+    # ec.analyze()
