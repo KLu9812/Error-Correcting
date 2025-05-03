@@ -2,6 +2,7 @@
 import pandas as pd
 import json
 import numpy as np
+import ast
 
 # Third-party imports
 from openai import OpenAI
@@ -168,12 +169,15 @@ class ErrorCorrect:
     
     def __init__(self, **kwargs):
         # Initialize LM Studio client
-        self.client = OpenAI(base_url="http://127.0.0.1:1234/v1", api_key="lm-studio")
+        #3857skg389dh
+        self.client = OpenAI(base_url="http://localhost:3465/v1", api_key="3857skg389dh")
         self.models = kwargs.get('models', None)
         self.schema = kwargs.get('schema', None)
         self.questions = kwargs.get('questions', None)
         self.correct_answers = kwargs.get('correct_answers', None)
     
+    def set_current_model(self, model):
+        self.current_model = model
     def set_models(self, models):
         self.models = models
     def set_schema(self, schema):
@@ -185,31 +189,66 @@ class ErrorCorrect:
     
     def set_initial_response_role(self, role):
         self.initial_response_role = role
-    def save_responses(self, verbose = True):
-        for model in self.models:
-            answers = []
-            reasonings = []
-            for i in range(len(self.questions)):
-                if verbose:
-                    print(i)
-                messages = [self.initial_response_role]
-                question = self.questions[i]
-                messages.append({"role": "user", "content": question})
-                try:
-                    response = self.client.chat.completions.create(
-                        model=model, messages=messages, response_format = self.schema)
-                    results = json.loads(response.choices[0].message.content)
-                    answer_column = list(self.schema["json_schema"]["schema"]["properties"].keys())[2]
-                    answers.append(str(results[answer_column]).lower())
-                    reasonings.append(results['concise_reasoning'])
-                except Exception:
-                    answers.append("?")
-                    reasonings.append("Unable to solve the given question.")
-                full_data = {"answers": answers, "reasonings": reasonings}
-                df = pd.DataFrame(full_data)
-                df.to_csv(model + "responses.csv")
+    def save_responses(self, verbose = True):   
+        answers = []
+        reasonings = []
+        for i in range(len(self.questions)):
+            if verbose:
+                print(i)
+            messages = [self.initial_response_role]
+            question = self.questions[i]
+            messages.append({"role": "user", "content": question})
+            try:
+                response = self.client.chat.completions.create(
+                        model=self.current_model, messages=messages, response_format = self.schema)
+                results = json.loads(response.choices[0].message.content)
+                answer_column = list(self.schema["json_schema"]["schema"]["properties"].keys())[2]
+                answers.append(str(results[answer_column]).lower())
+                reasonings.append(results['concise_reasoning'])
+            except Exception as e:
+                print(e)
+                answers.append("?")
+                reasonings.append("Unable to solve the given question.")
+            full_data = {"answers": answers, "reasonings": reasonings}
+            df = pd.DataFrame(full_data)
+            df.to_csv(self.current_model + "responses.csv")
+
+    def create_batch_prompts(self, verbose = True):
+        prompts = []
+        for i in range(len(self.questions)):
+            if verbose:
+                print(i)
+            messages = [self.initial_response_role]
+            question = self.questions[i]
+            question += " Write your answer in the following json format: "
+            question += str(self.schema)
+            messages.append({"role": "user", "content": question})
+            prompt = {}
+            prompt["custom_id"] = str(i)
+            prompt["method"] = "POST"
+            prompt["url"] = "/v1/chat/completions"
+            body = {}
+            body["model"] = self.current_model
+            body["messages"] = messages
+            prompt["body"] = body
+            prompt["response_format"] = self.schema
+            prompts.append(prompt)
+        with open("prompts.jsonl", "w") as f:
+            for prompt in prompts:
+                f.write(json.dumps(prompt) + "\n")
     
-    
+    def save_batch_responses(self):
+        answers = []
+        results = pd.read_json("results.jsonl", lines = True)
+        for line in results["response"]:
+            answer = line['body']['choices'][0]['message']['content']
+            answers.append(answer)
+        full_data = {"answers": answers}
+        df = pd.DataFrame(full_data)
+        df.to_csv(self.current_model + "responses.csv")
+
+
+
     def set_multi_input_prompt(self, prompt):
         self.multi_input_prompt = prompt
     def set_multi_input_role(self, role):
@@ -219,7 +258,7 @@ class ErrorCorrect:
         for model_b in self.models:
             models_reasonings[model_b] = pd.read_csv(model_b + "responses.csv")
             models_reasonings[model_b].fillna("", inplace = True)
-        for model in self.models:
+        for model in [self.current_model]:
             answers = []
             for i in range(len(self.questions)):
                 if verbose:

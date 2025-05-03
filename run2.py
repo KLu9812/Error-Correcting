@@ -25,7 +25,7 @@ if __name__ == "__main__":
     # ec.analyze()
     
     #AIME run-----------------------------------------------------------------
-    save_aime(500)
+    #save_aime(5)
     
     aime_info = load_aime_info()
     ec = ErrorCorrect(models = models, schema = yes_no_response_schema,
@@ -34,8 +34,8 @@ if __name__ == "__main__":
 
     ec.set_initial_response_role(digit_role_message)
     #ec.save_responses()
-    ec.create_batch_prompts()
-    #ec.save_batch_responses()
+    #ec.create_batch_prompts()
+    ec.save_batch_responses()
     
     #ec.set_multi_input_role(digit_multi_input_role_message)
     #ec.set_multi_input_prompt(digit_multi_input_prompt)
