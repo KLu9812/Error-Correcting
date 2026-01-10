@@ -17,7 +17,7 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL, padding_side = PADDING_SIDE)
 tokenizer.pad_token = tokenizer.eos_token
 print("Model Loaded")
 
-rate_message = "You will be given a question and multiple solutions to that question. Give a score ranging from 1 to 5 on the helpfulness of each solution. Structure your answer so that each rating is a new line, with the format Solution#: rating#."
+rate_message = "You will be given a question and multiple solutions to that question. Give a score ranging from 1 to 5 on the helpfulness of each solution and you must score each solution. Do not answer the question and do not explain your scores. Only provide the scores. Structure your answer so that each score is a new line, with the format Solution#: score#."
 
 aime_info = pd.read_csv("aime_info.csv")
 print("Data Loaded")
