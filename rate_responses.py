@@ -2,6 +2,7 @@ from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer
 from generate_data import *
 import pandas as pd
+import random
 
 MODEL = "./aya-expanse-32b"
 MAX_TOKENS = 8192
@@ -33,6 +34,7 @@ messages = []
 num_questions = NUM_QUESTIONS
 if NUM_QUESTIONS == 0:
     num_questions = len(aime_info['questions'])
+proposer_orders = []
 for i in range(num_questions):
     question = aime_info['questions'][i]
     role_message = {}
@@ -43,13 +45,16 @@ for i in range(num_questions):
     content_message = "Here is the question: "
     content_message += '\n' + question
     content_message += '\n' + "Here are the solutions you should rate:\n"
-    for j in range(len(all_proposers)):
-        content_message += "Solution " + str(j + 1) + ": " + proposer_data[all_proposers[j]]["concise_reasoning"][i][-300:]
+    proposer_order = list(range(40))
+    random.shuffle(proposer_order)
+    for j in range(len(proposer_order)):
+        content_message += "Solution " + str(j + 1) + ": " + proposer_data[all_proposers[proposer_order[j]]]["concise_reasoning"][i][-300:]
     question_message['content'] = content_message
+    proposer_orders.append(proposer_order)
     tokenized_chat = tokenizer.apply_chat_template([role_message, question_message], tokenize=False, add_generation_prompt = True, return_tensors = "pt")
     messages.append(tokenized_chat)
 
 outputs = model.generate(messages, sampling_params = sampling_params)
 answers = [output.outputs[0].text for output in outputs]
-df = pd.DataFrame({'answers': answers})
+df = pd.DataFrame({'answers': answers, 'proposer_orders': proposer_orders})
 df.to_csv(MODEL + 'rateresponses.csv')
