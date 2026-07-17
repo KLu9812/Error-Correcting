@@ -20,14 +20,14 @@ print("Model Loaded")
 
 rate_message = "You will be given a question and multiple solutions to that question. Give a score ranging from 1 to 5 on the helpfulness of each solution and you must score each solution. Do not answer the question and do not explain your scores. Only provide the scores. Structure your answer so that each score is a new line, with the format Solution#: score#."
 
-aime_info = pd.read_csv("aime_info.csv")
+aime_info = pd.read_csv("cladder_info.csv")
 print("Data Loaded")
-all_models = ["./Llama-3.3-70B-Instruct", "4o", "./Sky-T1-32B-Preview", "./Qwen3-32B", "gemini20", "./QwQ-32B", "./aya-expanse-32b", "./AceReason-Nemotron-14B"]
+all_models = ["./Llama-3.3-70B-Instruct", "4o", "./Sky-T1-32B-Preview", "./Qwen3-32B", "gemini15pro", "./QwQ-32B", "./aya-expanse-32b", "./AceReason-Nemotron-14B"]
 proposer_data = {}
 all_proposers = []
 for proposer in all_models:
     for i in range(1, 6):
-        proposer_data[proposer + str(i)] = pd.read_csv(proposer + "responses" + str(i) + "_filtered.csv")
+        proposer_data[proposer + str(i)] = pd.read_csv(proposer + "cladderresponses" + str(i) + "_filtered.csv")
         all_proposers.append(proposer + str(i))
 
 messages = []
@@ -57,4 +57,4 @@ for i in range(num_questions):
 outputs = model.generate(messages, sampling_params = sampling_params)
 answers = [output.outputs[0].text for output in outputs]
 df = pd.DataFrame({'answers': answers, 'proposer_orders': proposer_orders})
-df.to_csv(MODEL + 'rateresponses.csv')
+df.to_csv(MODEL + 'cladderrateresponses.csv')
